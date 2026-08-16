@@ -154,7 +154,7 @@ function Shop() {
               min={4}
               max={30}
               step={1}
-              onValueChange={([v]) => setMaxPrice(v)}
+              onValueChange={(values) => setMaxPrice(values[0] ?? 30)}
               aria-label="Maximum price"
             />
             <p className="mt-2 text-xs text-muted-foreground">Up to ${maxPrice}</p>
