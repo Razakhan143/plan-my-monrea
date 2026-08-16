@@ -7,7 +7,15 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { allItems, effectivePrice, type Product } from "@/data/catalog";
+import { useQuery } from "@tanstack/react-query";
+import { effectivePrice, type Product } from "@/data/catalog";
+import { listProducts } from "@/lib/storefront.functions";
+
+export const productsQueryOptions = {
+  queryKey: ["products"],
+  queryFn: () => listProducts(),
+  staleTime: 60_000,
+};
 
 export interface CartLine {
   id: string;
@@ -15,6 +23,7 @@ export interface CartLine {
 }
 
 interface ShopState {
+  products: Product[];
   cart: CartLine[];
   wishlist: string[];
   cartOpen: boolean;
@@ -26,6 +35,7 @@ interface ShopState {
   toggleWishlist: (id: string) => void;
   inWishlist: (id: string) => boolean;
   cartItems: { product: Product; quantity: number }[];
+  wishlistItems: Product[];
   cartCount: number;
   subtotal: number;
 }
@@ -50,6 +60,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const { data: products = [] } = useQuery(productsQueryOptions);
 
   useEffect(() => {
     setCart(read<CartLine[]>(CART_KEY, []));
@@ -96,12 +107,13 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   const value = useMemo<ShopState>(() => {
     const cartItems = cart
       .map((line) => {
-        const product = allItems.find((p) => p.id === line.id);
+        const product = products.find((p) => p.id === line.id);
         return product ? { product, quantity: line.quantity } : null;
       })
       .filter(Boolean) as { product: Product; quantity: number }[];
 
     return {
+      products,
       cart,
       wishlist,
       cartOpen,
@@ -113,10 +125,23 @@ export function ShopProvider({ children }: { children: ReactNode }) {
       toggleWishlist,
       inWishlist: (id: string) => wishlist.includes(id),
       cartItems,
+      wishlistItems: wishlist
+        .map((id) => products.find((p) => p.id === id))
+        .filter(Boolean) as Product[],
       cartCount: cartItems.reduce((n, i) => n + i.quantity, 0),
       subtotal: cartItems.reduce((n, i) => n + effectivePrice(i.product) * i.quantity, 0),
     };
-  }, [cart, wishlist, cartOpen, addToCart, removeFromCart, setQuantity, clearCart, toggleWishlist]);
+  }, [
+    products,
+    cart,
+    wishlist,
+    cartOpen,
+    addToCart,
+    removeFromCart,
+    setQuantity,
+    clearCart,
+    toggleWishlist,
+  ]);
 
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>;
 }
