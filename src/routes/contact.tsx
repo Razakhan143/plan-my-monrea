@@ -28,7 +28,7 @@ export const Route = createFileRoute("/contact")({
   component: Contact,
 });
 
-const faqs = [
+const faqs: [string, string][] = [
   ["How do digital downloads work?", "After checkout you receive download links for your files, plus access from your account area. Nothing is shipped."],
   ["Do you ship physical products?", "No. Every Monrea Prints product is a digital printable file."],
   ["What file formats are included?", "High-resolution print-ready PDFs, sized for standard home and professional printers."],

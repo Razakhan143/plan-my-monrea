@@ -78,7 +78,7 @@ export function Footer() {
               {col.links.map((link) => (
                 <li key={link.label}>
                   <Link
-                    to={link.to}
+                    to={link.to as string}
                     className="text-sm text-foreground/75 transition-colors hover:text-primary"
                   >
                     {link.label}
